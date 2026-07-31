@@ -1,231 +1,680 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>~/ishmeet</title>
-    <style>
-        :root {
-            --bg-color: #121212;
-            --text-color: #f0f0f0;
-            --prompt-user: #4af626;
-            --prompt-host: #4af626;
-            --prompt-dir: #2196f3;
-            --accent-color: #ffb300;
-            --font-stack: 'Ubuntu Mono', 'Consolas', 'Courier New', monospace;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>corvainx — field profile</title>
+<meta name="description" content="corvainx — cybersecurity researcher. Networking, penetration testing, and open-source intelligence.">
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: var(--font-stack);
-            margin: 0;
-            padding: 20px;
-            font-size: 15px;
-            line-height: 1.5;
-        }
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,340;0,9..144,460;0,9..144,560;1,9..144,440&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 
-        #terminal {
-            max-width: 900px;
-            margin: 0 auto;
-        }
+<style>
+  :root{
+    --ink:#0A0E12;
+    --ink-raised:#0F151B;
+    --paper:#E9E6DE;
+    --paper-dim:#B9B6AC;
+    --muted:#7C8593;
+    --signal:#5FB8AC;
+    --signal-dim:#3E7C74;
+    --stamp:#B8453C;
+    --rule: rgba(233,230,222,0.12);
+    --bar:#05070A;
 
-        .output-line {
-            white-space: pre-wrap;
-            margin-bottom: 6px;
-        }
+    --serif: 'Fraunces', Georgia, serif;
+    --sans: 'Inter', -apple-system, sans-serif;
+    --mono: 'IBM Plex Mono', 'Consolas', monospace;
+  }
 
-        .input-line {
-            display: flex;
-            align-items: center;
-            margin-top: 12px;
-        }
+  *{ box-sizing:border-box; }
 
-        .prompt {
-            font-weight: bold;
-            margin-right: 10px;
-            white-space: nowrap;
-        }
+  ::selection{ background: var(--signal); color: var(--ink); }
 
-        .prompt .user { color: var(--prompt-user); }
-        .prompt .host { color: var(--prompt-host); }
-        .prompt .dir { color: var(--prompt-dir); }
+  html{ scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    *{ animation-duration:0.001ms !important; transition-duration:0.001ms !important; }
+  }
 
-        #cmd-input {
-            background: transparent;
-            border: none;
-            color: var(--text-color);
-            font-family: var(--font-stack);
-            font-size: 15px;
-            flex-grow: 1;
-            outline: none;
-            padding: 0;
-        }
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--paper);
+    font-family:var(--sans);
+    font-size:16px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
 
-        .accent { color: var(--accent-color); }
-        .error { color: #ff5252; }
+  a{ color:inherit; }
+  a:focus-visible, button:focus-visible, input:focus-visible{
+    outline:2px solid var(--signal);
+    outline-offset:3px;
+  }
 
-        ul {
-            list-style-type: none;
-            padding-left: 0;
-            margin: 8px 0;
-        }
+  /* ---------- layout shell ---------- */
 
-        li { margin-bottom: 4px; }
-        a { color: var(--accent-color); text-decoration: none; }
-        a:hover { text-decoration: underline; }
-    </style>
+  .frame{
+    display:grid;
+    grid-template-columns: 88px minmax(0,1fr);
+  }
+
+  @media (max-width: 880px){
+    .frame{ grid-template-columns: 1fr; }
+  }
+
+  /* ---------- top nav ---------- */
+
+  .topnav{
+    position:fixed;
+    top:0; left:0; right:0;
+    z-index:40;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:22px 40px;
+    background:linear-gradient(to bottom, rgba(10,14,18,0.92), rgba(10,14,18,0));
+    pointer-events:none;
+  }
+  .topnav *{ pointer-events:auto; }
+
+  .brand{
+    font-family:var(--mono);
+    font-size:13px;
+    letter-spacing:0.08em;
+    text-decoration:none;
+    color:var(--paper);
+  }
+  .brand span{ color:var(--signal); }
+
+  .navlinks{
+    display:flex;
+    gap:28px;
+    font-family:var(--mono);
+    font-size:11.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+  }
+  .navlinks a{
+    text-decoration:none;
+    color:var(--muted);
+    transition: color 0.2s ease;
+    border-bottom:1px solid transparent;
+    padding-bottom:2px;
+  }
+  .navlinks a:hover{ color:var(--paper); border-bottom-color:var(--rule); }
+
+  @media (max-width: 620px){
+    .topnav{ padding:18px 20px; }
+    .navlinks{ gap:16px; font-size:10px; }
+  }
+
+  /* ---------- spine (log index) ---------- */
+
+  .spine{
+    position:sticky;
+    top:0;
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:120px 0 40px;
+  }
+
+  .spine-line{
+    position:relative;
+    width:1px;
+    flex:1;
+    background:var(--rule);
+  }
+
+  .spine-marks{
+    position:absolute;
+    top:0; left:50%;
+    transform:translateX(-50%);
+    height:100%;
+    width:1px;
+  }
+
+  .mark{
+    position:absolute;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:7px; height:7px;
+    border-radius:50%;
+    background:var(--ink-raised);
+    border:1px solid var(--muted);
+    transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+  }
+  .mark.active{
+    background:var(--signal);
+    border-color:var(--signal);
+    box-shadow:0 0 0 4px rgba(95,184,172,0.14);
+  }
+
+  .spine-label{
+    writing-mode: vertical-rl;
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:0.14em;
+    color:var(--muted);
+    margin-top:14px;
+  }
+
+  @media (max-width: 880px){
+    .spine{ display:none; }
+  }
+
+  /* ---------- main column ---------- */
+
+  main{ min-width:0; }
+
+  .measure{
+    max-width:760px;
+    margin:0 auto;
+    padding: 0 40px;
+  }
+
+  @media (max-width: 620px){
+    .measure{ padding:0 22px; }
+  }
+
+  section{ padding:120px 0; }
+
+  /* ---------- hero ---------- */
+
+  .hero{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    position:relative;
+    padding-top:60px;
+  }
+
+  .stamp{
+    position:absolute;
+    top:126px;
+    right:40px;
+    border:1px solid var(--stamp);
+    color:var(--stamp);
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:0.14em;
+    padding:6px 10px;
+    transform:rotate(3deg);
+    opacity:0.75;
+  }
+  @media (max-width: 620px){ .stamp{ display:none; } }
+
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--signal);
+    margin-bottom:26px;
+  }
+  .eyebrow::before{ content:'// '; color:var(--signal-dim); }
+
+  .hero h1{
+    font-family:var(--serif);
+    font-weight:460;
+    font-size:clamp(3.4rem, 9vw, 6.4rem);
+    line-height:0.98;
+    margin:0 0 30px;
+    letter-spacing:-0.01em;
+  }
+  .hero h1 em{
+    font-style:italic;
+    font-weight:440;
+    color:var(--signal);
+  }
+
+  .hero-sub{
+    max-width:520px;
+    font-size:1.08rem;
+    color:var(--paper-dim);
+  }
+
+  .hero-meta{
+    margin-top:64px;
+    display:flex;
+    gap:36px;
+    flex-wrap:wrap;
+    font-family:var(--mono);
+    font-size:11.5px;
+    letter-spacing:0.06em;
+    color:var(--muted);
+    text-transform:uppercase;
+  }
+  .hero-meta b{ color:var(--paper); font-weight:500; }
+
+  /* ---------- section headers w/ redaction reveal ---------- */
+
+  .sec-head{
+    display:flex;
+    align-items:baseline;
+    gap:16px;
+    margin-bottom:44px;
+  }
+
+  .sec-code{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--signal-dim);
+    letter-spacing:0.08em;
+  }
+
+  .redact{
+    position:relative;
+    display:inline-block;
+    font-family:var(--serif);
+    font-weight:460;
+    font-size:clamp(1.8rem, 4vw, 2.6rem);
+    color:var(--paper);
+  }
+  .redact::after{
+    content:'';
+    position:absolute;
+    inset:-2px -6px;
+    background:var(--bar);
+    transform-origin:right center;
+    transform:scaleX(1);
+    transition: transform 0.85s cubic-bezier(0.65,0,0.16,1);
+  }
+  .redact.revealed::after{
+    transform:scaleX(0);
+  }
+
+  hr.rule{
+    border:none;
+    border-top:1px solid var(--rule);
+    margin:0 0 40px;
+  }
+
+  /* ---------- profile ---------- */
+
+  .profile p{
+    color:var(--paper-dim);
+    font-size:1.04rem;
+    max-width:640px;
+  }
+  .profile p + p{ margin-top:18px; }
+  .profile a{
+    color:var(--signal);
+    text-decoration:none;
+    border-bottom:1px solid var(--signal-dim);
+  }
+  .profile a:hover{ border-bottom-color:var(--signal); }
+
+  /* ---------- capabilities manifest ---------- */
+
+  .manifest{
+    border-top:1px solid var(--rule);
+  }
+  .manifest-row{
+    display:grid;
+    grid-template-columns: 90px 1fr;
+    gap:20px;
+    padding:18px 0;
+    border-bottom:1px solid var(--rule);
+    align-items:baseline;
+  }
+  .manifest-row .code{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.08em;
+    color:var(--signal);
+  }
+  .manifest-row .label{
+    font-size:1rem;
+    color:var(--paper);
+  }
+  .manifest-row .label small{
+    display:block;
+    margin-top:2px;
+    font-family:var(--mono);
+    font-size:11.5px;
+    color:var(--muted);
+    letter-spacing:0.02em;
+  }
+
+  /* ---------- fieldwork / projects ---------- */
+
+  .field-entry{
+    padding:34px 0;
+    border-bottom:1px solid var(--rule);
+    display:grid;
+    grid-template-columns: 74px 1fr;
+    gap:22px;
+  }
+  .field-entry:first-of-type{ border-top:1px solid var(--rule); }
+
+  .field-case{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--muted);
+    letter-spacing:0.06em;
+    padding-top:4px;
+  }
+
+  .field-body h3{
+    font-family:var(--serif);
+    font-weight:460;
+    font-size:1.5rem;
+    margin:0 0 10px;
+  }
+  .field-body p{
+    color:var(--paper-dim);
+    margin:0 0 16px;
+    max-width:560px;
+  }
+  .field-link{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.04em;
+    text-decoration:none;
+    color:var(--paper);
+    border-bottom:1px solid var(--rule);
+    padding-bottom:3px;
+    transition: color 0.2s ease, border-color 0.2s ease, gap 0.2s ease;
+  }
+  .field-link:hover{
+    color:var(--signal);
+    border-color:var(--signal-dim);
+    gap:12px;
+  }
+  .field-link svg{ width:12px; height:12px; flex:none; }
+
+  /* ---------- contact ---------- */
+
+  .contact-box{
+    border:1px solid var(--rule);
+    padding:44px;
+    position:relative;
+  }
+  @media (max-width:620px){ .contact-box{ padding:30px 24px; } }
+
+  .contact-box .tag{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.12em;
+    color:var(--signal);
+    text-transform:uppercase;
+    margin-bottom:18px;
+  }
+  .contact-box h3{
+    font-family:var(--serif);
+    font-weight:460;
+    font-size:1.9rem;
+    margin:0 0 22px;
+    max-width:460px;
+  }
+  .channel-list{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .channel-list a{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    text-decoration:none;
+    color:var(--paper);
+    font-family:var(--mono);
+    font-size:14px;
+    width:fit-content;
+    border-bottom:1px solid transparent;
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+  .channel-list a:hover{ color:var(--signal); border-bottom-color:var(--signal-dim); }
+  .channel-list .dot{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--signal);
+    flex:none;
+  }
+
+  /* ---------- footer ---------- */
+
+  footer{
+    padding:50px 0 90px;
+  }
+  footer .measure{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--muted);
+    letter-spacing:0.06em;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+</style>
 </head>
 <body>
 
-<div id="terminal">
-    <div id="history"></div>
-    <div class="input-line" id="input-container" style="display: none;">
-        <span class="prompt"><span class="user">visitor</span>@<span class="host">ishmeet's-terminal</span>:<span class="dir">~</span>$</span>
-        <input type="text" id="cmd-input" autofocus autocomplete="off" spellcheck="false">
+<div class="topnav">
+  <a href="#top" class="brand">corvainx<span>_</span></a>
+  <nav class="navlinks">
+    <a href="#profile">Profile</a>
+    <a href="#capabilities">Capabilities</a>
+    <a href="#fieldwork">Fieldwork</a>
+    <a href="#contact">Contact</a>
+  </nav>
+</div>
+
+<div class="frame" id="top">
+
+  <aside class="spine" aria-hidden="true">
+    <div class="spine-line">
+      <div class="spine-marks">
+        <div class="mark" data-for="hero" style="top:0%"></div>
+        <div class="mark" data-for="profile" style="top:25%"></div>
+        <div class="mark" data-for="capabilities" style="top:50%"></div>
+        <div class="mark" data-for="fieldwork" style="top:75%"></div>
+        <div class="mark" data-for="contact" style="top:100%"></div>
+      </div>
     </div>
+    <div class="spine-label" id="spine-label">LOG — 00</div>
+  </aside>
+
+  <main>
+
+    <section class="hero" id="hero">
+      <div class="measure">
+        <div class="stamp">OPEN SOURCE // UNCLASSIFIED</div>
+        <div class="eyebrow">field profile</div>
+        <h1>corvainx<br><em>reads the network<br>before it reads you.</em></h1>
+        <p class="hero-sub">
+          Cybersecurity student working across networking and penetration testing.
+          Most of what I build lives in the terminal — this page is the exception.
+        </p>
+        <div class="hero-meta">
+          <span>Driver — <b>Arch (btw)</b></span>
+        </div>
+      </div>
+    </section>
+
+    <section id="profile">
+      <div class="measure">
+        <div class="sec-head">
+          <span class="sec-code">§01</span>
+          <span class="redact" data-redact>Profile</span>
+        </div>
+        <hr class="rule">
+        <div class="profile">
+          <p>
+            I'm a cybersecurity student with a standing interest in how networks
+            actually behave — not just how the diagram says they should. Most of
+            my time goes into penetration testing practice and open-source
+            intelligence gathering: tracing what's exposed, what's discoverable,
+            and what a system reveals about itself without meaning to.
+          </p>
+          <p>
+            Day to day, that runs through Arch Linux with a Hyprland setup tuned
+            for speed over decoration. Code and writeups both live on
+            <a href="https://github.com/corvainx" target="_blank" rel="noopener">github.com/corvainx</a>.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="capabilities">
+      <div class="measure">
+        <div class="sec-head">
+          <span class="sec-code">§02</span>
+          <span class="redact" data-redact>Capabilities</span>
+        </div>
+        <div class="manifest">
+          <div class="manifest-row">
+            <span class="code">NET</span>
+            <span class="label">Computer networking<small>Protocols, topology, traffic behavior</small></span>
+          </div>
+          <div class="manifest-row">
+            <span class="code">OSINT</span>
+            <span class="label">Open-source intelligence<small>Reconnaissance and exposure mapping</small></span>
+          </div>
+          <div class="manifest-row">
+            <span class="code">SH</span>
+            <span class="label">Bash / Linux<small>Automation, tooling, daily power use</small></span>
+          </div>
+          <div class="manifest-row">
+            <span class="code">PY</span>
+            <span class="label">Python<small>Intermediate — scripting and tooling</small></span>
+          </div>
+          <div class="manifest-row">
+            <span class="code">GO</span>
+            <span class="label">Go<small>Reading and understanding codebases</small></span>
+          </div>
+          <div class="manifest-row">
+            <span class="code">C</span>
+            <span class="label">C<small>Basic — fundamentals</small></span>
+          </div>
+          <div class="manifest-row">
+            <span class="code">SYS</span>
+            <span class="label">Arch Linux · Hyprland<small>Daily driver, configured by hand</small></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="fieldwork">
+      <div class="measure">
+        <div class="sec-head">
+          <span class="sec-code">§03</span>
+          <span class="redact" data-redact>Fieldwork</span>
+        </div>
+        <hr class="rule">
+
+        <div class="field-entry">
+          <span class="field-case">F—01</span>
+          <div class="field-body">
+            <h3>Veluna</h3>
+            <p>A free, open-source desktop music player for Windows and Linux. Streams millions of songs without the usual friction.</p>
+            <a class="field-link" href="https://github.com/corvainx/veluna" target="_blank" rel="noopener">
+              github.com/corvainx/veluna
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <div class="field-entry">
+          <span class="field-case">F—02</span>
+          <div class="field-body">
+            <h3>OSINTrecon</h3>
+            <p>A reconnaissance tool for open-source intelligence gathering — built to surface what's already public and easy to miss.</p>
+            <a class="field-link" href="https://github.com/corvainx/OSINTrecon" target="_blank" rel="noopener">
+              github.com/corvainx/OSINTrecon
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <div class="field-entry">
+          <span class="field-case">F—03</span>
+          <div class="field-body">
+            <h3>Fluxform</h3>
+            <p>An offline file converter for Linux, covering audio, video, images, documents, and archives — no upload required.</p>
+            <a class="field-link" href="https://github.com/corvainx/fluxform" target="_blank" rel="noopener">
+              github.com/corvainx/fluxform
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact">
+      <div class="measure">
+        <div class="sec-head">
+          <span class="sec-code">§04</span>
+          <span class="redact" data-redact>Contact</span>
+        </div>
+        <div class="contact-box">
+          <div class="tag">Secure channel</div>
+          <h3>Reach out about work, research, or anything worth reconnaissance.</h3>
+          <div class="channel-list">
+            <a href="mailto:corvainx@proton.me"><span class="dot"></span>corvainx@proton.me</a>
+            <a href="https://github.com/corvainx" target="_blank" rel="noopener"><span class="dot"></span>github.com/corvainx</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="measure">
+        <span>© <span id="year"></span> corvainx</span>
+        <span>// end of file</span>
+      </div>
+    </footer>
+
+  </main>
 </div>
 
 <script>
-    const historyContainer = document.getElementById('history');
-    const cmdInput = document.getElementById('cmd-input');
-    const inputContainer = document.getElementById('input-container');
+  document.getElementById('year').textContent = new Date().getFullYear();
 
-    const info = {
-        about: `ishmeet — cybersecurity student.
-
-into networking and penetration testing. 
-
-github: github.com/corvainx`,
-
-        skills: [
-            "computer networking",
-            "go — learned to read and understand codebases (basic)",
-            "python (intermediate)",
-            "c (basic)",
-            "bash / linux — automation, power use",
-            "osint — open source intelligence gathering",
-            "arch linux (hyprland) — daily driver"
-        ],
-
-        projects: [
-            {
-                name: "veluna",
-                desc: "stream millions of songs, free and open source. desktop music player for windows & linux.",
-                url: "https://github.com/corvainx/veluna"
-            },
-            {
-                name: "osintrecon",
-                desc: "osint reconnaissance tool.",
-                url: "https://github.com/corvainx/OSINTrecon"
-            },
-            {
-                name: "fluxform",
-                desc: "offline file converter for linux. audio, video, images, documents, archives.",
-                url: "https://github.com/corvainx/fluxform"
-            }
-        ],
-
-        contact: {
-            email: "ishmeet.cybersec@gmail.com"
-        }
-    };
-
-    const bootLines = [
-        "ishmeet's terminal — v1.0.0",
-        "",
-        "System information as of " + new Date().toDateString(),
-        "",
-        "System load:  existential        Processes:           running",
-        "Usage of /:   too many tabs      Users logged in:     just you",
-        "Memory usage: enough",
-        "",
-        "Lost? Type <span class='accent'>help</span> to see available commands.\n"
-    ];
-
-    function printLine(text, className = '') {
-        const div = document.createElement('div');
-        div.className = `output-line ${className}`;
-        div.innerHTML = text;
-        historyContainer.appendChild(div);
-        window.scrollTo(0, document.body.scrollHeight);
-    }
-
-    async function runBoot() {
-        for (let line of bootLines) {
-            printLine(line);
-            await new Promise(resolve => setTimeout(resolve, 150));
-        }
-        inputContainer.style.display = 'flex';
-        cmdInput.focus();
-    }
-
-    function handleCommand(cmdStr) {
-        const trimmed = cmdStr.trim();
-        printLine(`<span class="prompt"><span class="user">visitor</span>@<span class="host">ishmeet's-terminal</span>:<span class="dir">~</span>$</span> ${cmdStr}`);
-
-        if (trimmed === '') return;
-
-        const args = trimmed.split(' ');
-        const command = args[0].toLowerCase();
-
-        switch(command) {
-            case 'help':
-                printLine("available commands:\n" +
-                          "  <span class='accent'>about</span>    - who is this person\n" +
-                          "  <span class='accent'>skills</span>   - tech stack and tools\n" +
-                          "  <span class='accent'>projects</span> - things i built\n" +
-                          "  <span class='accent'>contact</span>  - how to reach\n" +
-                          "  <span class='accent'>clear</span>    - clear terminal");
-                break;
-
-            case 'about':
-                printLine(info.about);
-                break;
-
-            case 'skills':
-                printLine("tech stack:");
-                let skillsList = "<ul>";
-                info.skills.forEach(skill => {
-                    skillsList += `<li>  • ${skill}</li>`;
-                });
-                skillsList += "</ul>";
-                printLine(skillsList);
-                break;
-
-            case 'projects':
-                printLine("projects:");
-                let projList = "<ul>";
-                info.projects.forEach(p => {
-                    projList += `<li>  • <span class='accent'>${p.name}</span> — ${p.desc}\n    <a href="${p.url}" target="_blank">${p.url}</a></li>`;
-                });
-                projList += "</ul>";
-                printLine(projList);
-                break;
-
-            case 'contact':
-                printLine(`  email:   <a href="mailto:ishmeet.cybersec@gmail.com">ishmeet.cybersec@gmail.com</a>`);
-                break;
-
-            case 'clear':
-                historyContainer.innerHTML = '';
-                break;
-
-            default:
-                printLine(`bash: ${command}: command not found. type 'help' for hints.`, 'error');
-        }
-    }
-
-    cmdInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            const command = cmdInput.value;
-            handleCommand(command);
-            cmdInput.value = '';
-        }
+  // Declassification reveal — each section heading is covered by a solid
+  // bar and un-covers once, the moment the section enters view.
+  const redactEls = document.querySelectorAll('[data-redact]');
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('revealed');
+        revealObserver.unobserve(entry.target);
+      }
     });
+  }, { threshold: 0.6 });
+  redactEls.forEach(el => revealObserver.observe(el));
 
-    document.addEventListener('click', () => {
-        cmdInput.focus();
+  // Spine log index — highlight the active section marker + label.
+  const sectionIds = ['hero','profile','capabilities','fieldwork','contact'];
+  const sections = sectionIds.map(id => document.getElementById(id)).filter(Boolean);
+  const marks = document.querySelectorAll('.mark');
+  const spineLabel = document.getElementById('spine-label');
+  const codes = { hero:'00', profile:'01', capabilities:'02', fieldwork:'03', contact:'04' };
+
+  const spineObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        marks.forEach(m => m.classList.toggle('active', m.dataset.for === id));
+        if (spineLabel) spineLabel.textContent = 'LOG — ' + (codes[id] || '00');
+      }
+    });
+  }, { threshold: 0.5 });
+  sections.forEach(sec => spineObserver.observe(sec));
+</script>
+
+</body>
+</html>
     });
 
     runBoot();
